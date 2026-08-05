@@ -4,15 +4,5 @@ version = "0.0.0"
 edition = "2024"
 
 [dependencies]
-
-[dependencies.windows]
-version = ">=0.59, <=0.62"
-features = [
-    "Win32_Foundation",
-    "Win32_UI_WindowsAndMessaging",
-    "Win32_UI_Input",
-    "Win32_UI_Input_KeyboardAndMouse",
-    "Win32_Devices_HumanInterfaceDevice",
-    "Win32_System_LibraryLoader",
-    "Win32_System_Threading",
-]
+evdev = { version = "0.13.2", features = ["device-test", "futures-core", "serde", "stream-trait", "tokio"] }
+tokio = { version = "1.53.1", features = ["macros", "rt-multi-thread"] }

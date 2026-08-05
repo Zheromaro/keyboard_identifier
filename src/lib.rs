@@ -1,19 +1,38 @@
-type KeyboardID = String;
+use evdev::{Device, KeyCode};
+use std::path::PathBuf;
 
-fn keyboard_listener() {
-    // TODO: make an infinite loop
-    // TODO: upadte keyboards list (check if a keyboard in unpluged or pluged)
-    // TODO: if a key is presed: indentify the keyboard, get the char, and call on_key_pressed(id: KeyboardID, c: char)
+pub trait InputDevice {
+    fn is_keyboard(&self) -> bool;
 }
 
-pub fn init_keyboard_listener() {
-    // TODO: start the keyboard listener thread
+pub trait DeviceSource {
+    type Device: InputDevice;
+    fn enumerate(&self) -> Vec<(PathBuf, Self::Device)>;
 }
 
-pub fn end_keyboard_listener() {
-    // TODO: stop the keyboard listener thread
+// Linux
+pub struct LinuxDeviceSource;
+
+impl InputDevice for Device {
+    fn is_keyboard(&self) -> bool {
+        self.supported_keys()
+            .map(|keys| keys.contains(KeyCode::KEY_A) && keys.contains(KeyCode::KEY_ENTER))
+            .unwrap_or(false)
+    }
+}
+impl DeviceSource for LinuxDeviceSource {
+    type Device = Device;
+
+    fn enumerate(&self) -> Vec<(PathBuf, Device)> {
+        evdev::enumerate().collect()
+    }
 }
 
-pub fn on_key_pressed(id: KeyboardID, c: char) -> (KeyboardID, char) {
-    (id, c)
+pub fn get_keyboard_list<S: DeviceSource>(source: &S) -> Vec<PathBuf> {
+    source
+        .enumerate()
+        .into_iter()
+        .filter(|(_, device)| device.is_keyboard())
+        .map(|(path, _)| path)
+        .collect()
 }
